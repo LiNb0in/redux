@@ -27,9 +27,11 @@ export default function applyMiddleware(...middlewares) {
     }
 
     const middlewareAPI = {
-      getState: store.getState,
-      dispatch: (...args) => dispatch(...args)
+      getState: store.getState, // 取到最新的store
+      dispatch: (...args) => dispatch(...args) // dispatch方法
     }
+    // 遍历所使用的中间件
+    // 给每个中间件注入getState, dispatch
     const chain = middlewares.map(middleware => middleware(middlewareAPI))
     dispatch = compose(...chain)(store.dispatch)
 
