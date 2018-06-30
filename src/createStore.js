@@ -33,7 +33,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
     enhancer = preloadedState
     preloadedState = undefined
   }
-
+  // 检查中间件是否有效, 有效就直接执行
   if (typeof enhancer !== 'undefined') {
     if (typeof enhancer !== 'function') {
       throw new Error('Expected the enhancer to be a function.')
@@ -41,17 +41,17 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
     return enhancer(createStore)(reducer, preloadedState)
   }
-
+  // 检查reducer是否有效
   if (typeof reducer !== 'function') {
     throw new Error('Expected the reducer to be a function.')
   }
-
-  let currentReducer = reducer
-  let currentState = preloadedState
-  let currentListeners = []
-  let nextListeners = currentListeners
-  let isDispatching = false
-
+  
+  let currentReducer = reducer  // 当前reducer
+  let currentState = preloadedState // 当前state
+  let currentListeners = [] // 监听列表
+  let nextListeners = currentListeners // 下次的监听列表
+  let isDispatching = false // 是否dispatch
+  
   function ensureCanMutateNextListeners() {
     if (nextListeners === currentListeners) {
       nextListeners = currentListeners.slice()
@@ -64,6 +64,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @returns {any} The current state tree of your application.
    */
   function getState() {
+    // 如果在dispatch就报错
     if (isDispatching) {
       throw new Error(
         'You may not call store.getState() while the reducer is executing. ' +
@@ -163,31 +164,32 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * return something else (for example, a Promise you can await).
    */
   function dispatch(action) {
+    // 判断传入的对象是否是普通对象
     if (!isPlainObject(action)) {
       throw new Error(
         'Actions must be plain objects. ' +
           'Use custom middleware for async actions.'
       )
     }
-
     if (typeof action.type === 'undefined') {
       throw new Error(
         'Actions may not have an undefined "type" property. ' +
           'Have you misspelled a constant?'
       )
     }
-
+    // 是否存在dispatch进程
     if (isDispatching) {
       throw new Error('Reducers may not dispatch actions.')
     }
 
     try {
       isDispatching = true
+      // 计算当前nextState
       currentState = currentReducer(currentState, action)
     } finally {
       isDispatching = false
     }
-
+    
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
@@ -258,6 +260,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
   // When a store is created, an "INIT" action is dispatched so that every
   // reducer returns their initial state. This effectively populates
   // the initial state tree.
+  // 初次创建的时候dispatch一个默认的action,构建一个默认的state
   dispatch({ type: ActionTypes.INIT })
 
   return {
