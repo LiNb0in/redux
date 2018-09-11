@@ -17,23 +17,23 @@ import compose from './compose'
  * @returns {Function} A store enhancer applying the middleware.
  */
 export default function applyMiddleware(...middlewares) {
-  return createStore => (...args) => {
-    const store = createStore(...args)
+  return createStore => (...args) => { // ...args => reducers or intital state
+    const store = createStore(...args) // 创建全局store
     let dispatch = () => {
       throw new Error(
         `Dispatching while constructing your middleware is not allowed. ` +
           `Other middleware would not be applied to this dispatch.`
       )
     }
-
+    // 给中间件包装的方法
     const middlewareAPI = {
       getState: store.getState, // 取到最新的store
       dispatch: (...args) => dispatch(...args) // dispatch方法
     }
     // 遍历所使用的中间件
-    // 给每个中间件注入getState, dispatch
+    // 注入包装好的方法, 以便在中间件中方便调用
     const chain = middlewares.map(middleware => middleware(middlewareAPI))
-    dispatch = compose(...chain)(store.dispatch)
+    dispatch = compose(...chain)(store.dispatch) // 将最新的store传入到中间件中
 
     return {
       ...store,
