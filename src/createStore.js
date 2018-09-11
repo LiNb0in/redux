@@ -46,13 +46,13 @@ export default function createStore(reducer, preloadedState, enhancer) {
     throw new Error('Expected the reducer to be a function.')
   }
   
-  let currentReducer = reducer  // 当前reducer
-  let currentState = preloadedState // 当前state
-  let currentListeners = [] // 监听列表
+  let currentReducer = reducer  // 初始化的reducer
+  let currentState = preloadedState // 初始化的state
+  let currentListeners = [] // 当前监听列表
   let nextListeners = currentListeners // 下次的监听列表
-  let isDispatching = false // 是否dispatch
+  let isDispatching = false // 是否有dispatch在工作
   
-  function ensureCanMutateNextListeners() {
+  function ensureCanMutateNextListeners() { // 防止重复监听?
     if (nextListeners === currentListeners) {
       nextListeners = currentListeners.slice()
     }
@@ -63,7 +63,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
    *
    * @returns {any} The current state tree of your application.
    */
-  function getState() {
+  function getState() { // 拿到最新的store方法
     // 如果在dispatch就报错
     if (isDispatching) {
       throw new Error(
@@ -99,7 +99,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @param {Function} listener A callback to be invoked on every dispatch.
    * @returns {Function} A function to remove this change listener.
    */
-  function subscribe(listener) {
+  function subscribe(listener) { // 添加监听任务
     if (typeof listener !== 'function') {
       throw new Error('Expected the listener to be a function.')
     }
@@ -115,10 +115,10 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
     let isSubscribed = true
 
-    ensureCanMutateNextListeners()
-    nextListeners.push(listener)
+    ensureCanMutateNextListeners() // 确保可以监听下一个事件??
+    nextListeners.push(listener) // 添加监听项目
 
-    return function unsubscribe() {
+    return function unsubscribe() { // 卸载监听
       if (!isSubscribed) {
         return
       }
@@ -171,7 +171,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
           'Use custom middleware for async actions.'
       )
     }
-    if (typeof action.type === 'undefined') {
+    if (typeof action.type === 'undefined') { // action是否有效
       throw new Error(
         'Actions may not have an undefined "type" property. ' +
           'Have you misspelled a constant?'
@@ -190,10 +190,10 @@ export default function createStore(reducer, preloadedState, enhancer) {
       isDispatching = false
     }
     
-    const listeners = (currentListeners = nextListeners)
+    const listeners = (currentListeners = nextListeners) // 确保监听进度??
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
-      listener()
+      listener() // 执行监听??
     }
 
     return action
@@ -209,7 +209,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
    * @param {Function} nextReducer The reducer for the store to use instead.
    * @returns {void}
    */
-  function replaceReducer(nextReducer) {
+  function replaceReducer(nextReducer) { // 替换当前的reducer
     if (typeof nextReducer !== 'function') {
       throw new Error('Expected the nextReducer to be a function.')
     }
