@@ -52,7 +52,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
   let nextListeners = currentListeners // 下次的监听列表
   let isDispatching = false // 是否有dispatch在工作
   
-  function ensureCanMutateNextListeners() { // 防止重复监听?
+  function ensureCanMutateNextListeners() { // 确保当前监听队列正确
     if (nextListeners === currentListeners) {
       nextListeners = currentListeners.slice()
     }
@@ -63,7 +63,7 @@ export default function createStore(reducer, preloadedState, enhancer) {
    *
    * @returns {any} The current state tree of your application.
    */
-  function getState() { // 拿到最新的store方法
+  function getState() { // 拿到最新的store
     // 如果在dispatch就报错
     if (isDispatching) {
       throw new Error(
@@ -115,8 +115,8 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
     let isSubscribed = true
 
-    ensureCanMutateNextListeners() // 确保可以监听下一个事件??
-    nextListeners.push(listener) // 添加监听项目
+    ensureCanMutateNextListeners() // 确保监听队列正确
+    nextListeners.push(listener) // 更新队列
 
     return function unsubscribe() { // 卸载监听
       if (!isSubscribed) {
@@ -132,9 +132,9 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
       isSubscribed = false
 
-      ensureCanMutateNextListeners()
-      const index = nextListeners.indexOf(listener)
-      nextListeners.splice(index, 1)
+      ensureCanMutateNextListeners() // 确保监听队列正确
+      const index = nextListeners.indexOf(listener) // 找到队列中位置
+      nextListeners.splice(index, 1) // 删掉这个任务
     }
   }
 
@@ -184,16 +184,16 @@ export default function createStore(reducer, preloadedState, enhancer) {
 
     try {
       isDispatching = true
-      // 计算当前nextState
+      // 更新state
       currentState = currentReducer(currentState, action)
     } finally {
       isDispatching = false
     }
     
-    const listeners = (currentListeners = nextListeners) // 确保监听进度??
+    const listeners = (currentListeners = nextListeners) // 确保监听队列正确
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
-      listener() // 执行监听??
+      listener() // 监听
     }
 
     return action
