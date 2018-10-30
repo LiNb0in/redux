@@ -21,7 +21,7 @@ and configure it to use [babel-preset-env](https://github.com/babel/babel/tree/m
 
 ```js
 {
-   "presets": ["@babel/preset-env"]
+  "presets": ["@babel/preset-env"]
 }
 ```
 
@@ -55,6 +55,7 @@ export function addTodo(text) {
   }
 }
 ```
+
 can be tested like:
 
 ```js
@@ -128,14 +129,14 @@ const mockStore = configureMockStore(middlewares)
 
 describe('async actions', () => {
   afterEach(() => {
-    fetchMock.reset()
     fetchMock.restore()
   })
 
   it('creates FETCH_TODOS_SUCCESS when fetching todos has been done', () => {
-    fetchMock
-      .getOnce('/todos', { body: { todos: ['do something'] }, headers: { 'content-type': 'application/json' } })
-
+    fetchMock.getOnce('/todos', {
+      body: { todos: ['do something'] },
+      headers: { 'content-type': 'application/json' }
+    })
 
     const expectedActions = [
       { type: types.FETCH_TODOS_REQUEST },
@@ -185,6 +186,7 @@ export default function todos(state = initialState, action) {
   }
 }
 ```
+
 can be tested like:
 
 ```js
@@ -303,18 +305,18 @@ can be tested like:
 
 ```js
 import React from 'react'
-import Enzyme, { mount } from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16';
+import Enzyme, { shallow } from 'enzyme'
+import Adapter from 'enzyme-adapter-react-16'
 import Header from '../../components/Header'
 
-Enzyme.configure({ adapter: new Adapter() });
+Enzyme.configure({ adapter: new Adapter() })
 
 function setup() {
   const props = {
     addTodo: jest.fn()
   }
 
-  const enzymeWrapper = mount(<Header {...props} />)
+  const enzymeWrapper = shallow(<Header {...props} />)
 
   return {
     props,
@@ -357,7 +359,9 @@ Consider the following `App` component:
 ```js
 import { connect } from 'react-redux'
 
-class App extends Component { /* ... */ }
+class App extends Component {
+  /* ... */
+}
 
 export default connect(mapStateToProps)(App)
 ```
@@ -376,7 +380,9 @@ In order to be able to test the App component itself without having to deal with
 import { connect } from 'react-redux'
 
 // Use named export for unconnected component (for tests)
-export class App extends Component { /* ... */ }
+export class App extends Component {
+  /* ... */
+}
 
 // Use default export for the connected component (for app)
 export default connect(mapStateToProps)(App)
@@ -403,9 +409,9 @@ import App from './App'
 
 You would only use the named export for tests.
 
->##### A Note on Mixing ES6 Modules and CommonJS
+> ##### A Note on Mixing ES6 Modules and CommonJS
 
->If you are using ES6 in your application source, but write your tests in ES5, you should know that Babel handles the interchangeable use of ES6 `import` and CommonJS `require` through its [interop](http://babeljs.io/docs/usage/modules/#interop) capability to run two module formats side-by-side, but the behavior is [slightly different](https://github.com/babel/babel/issues/2047). If you add a second export beside your default export, you can no longer import the default using `require('./App')`. Instead you have to use `require('./App').default`.
+> If you are using ES6 in your application source, but write your tests in ES5, you should know that Babel handles the interchangeable use of ES6 `import` and CommonJS `require` through its [interop](http://babeljs.io/docs/usage/modules/#interop) capability to run two module formats side-by-side, but the behavior is [slightly different](https://github.com/babel/babel/issues/2047). If you add a second export beside your default export, you can no longer import the default using `require('./App')`. Instead you have to use `require('./App').default`.
 
 ### Middleware
 
@@ -425,7 +431,7 @@ const thunk = ({ dispatch, getState }) => next => action => {
 }
 ```
 
-We need to create a fake `getState`, `dispatch`, and `next` functions. We use `jest.fn()` to create stubs, but with other test frameworks you would likely use sinon.
+We need to create a fake `getState`, `dispatch`, and `next` functions. We use `jest.fn()` to create stubs, but with other test frameworks you would likely use [Sinon](https://sinonjs.org/).
 
 The invoke function runs our middleware in the same way Redux does.
 
@@ -433,14 +439,14 @@ The invoke function runs our middleware in the same way Redux does.
 const create = () => {
   const store = {
     getState: jest.fn(() => ({})),
-    dispatch: jest.fn(),
-  };
+    dispatch: jest.fn()
+  }
   const next = jest.fn()
 
-  const invoke = (action) => thunk(store)(next)(action)
+  const invoke = action => thunk(store)(next)(action)
 
-  return {store, next, invoke}
-};
+  return { store, next, invoke }
+}
 ```
 
 We test that our middleware is calling the `getState`, `dispatch`, and `next` functions at the right time.
@@ -448,7 +454,7 @@ We test that our middleware is calling the `getState`, `dispatch`, and `next` fu
 ```js
 it('passes through non-function action', () => {
   const { next, invoke } = create()
-  const action = {type: 'TEST'}
+  const action = { type: 'TEST' }
   invoke(action)
   expect(next).toHaveBeenCalledWith(action)
 })
@@ -458,17 +464,17 @@ it('calls the function', () => {
   const fn = jest.fn()
   invoke(fn)
   expect(fn).toHaveBeenCalled()
-});
+})
 
 it('passes dispatch and getState', () => {
   const { store, invoke } = create()
   invoke((dispatch, getState) => {
     dispatch('TEST DISPATCH')
-    getState();
+    getState()
   })
   expect(store.dispatch).toHaveBeenCalledWith('TEST DISPATCH')
   expect(store.getState).toHaveBeenCalled()
-});
+})
 ```
 
 In some cases, you will need to modify the `create` function to use different mock implementations of `getState` and `next`.
